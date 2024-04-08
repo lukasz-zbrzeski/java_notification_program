@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class SocketServer {
 
     private static ArrayList<Notification> notificationQueue = new ArrayList<>();
+    private static ArrayList<ObjectOutputStream> clientOutputStreams = new ArrayList<>();
 
     static final int SERVER_PORT = 8080;
 
@@ -19,19 +20,26 @@ public class SocketServer {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Client connected: " + clientSocket);
 
+                    ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                    clientOutputStreams.add(out);
+
                     new Thread(() -> {
                         try {
                             ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
-                            ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
 
                             while (true) {
                                 Notification notification = (Notification) in.readObject();
                                 System.out.println("Notification received: " + notification.getMessage());
 
-                                Thread.sleep(1000);
+                                Thread.sleep(notification.getSendTime());
 
-                                notificationQueue.add(notification);
-                                out.writeObject(notification.getMessage());
+                                synchronized (notificationQueue) {
+                                    notificationQueue.add(notification);
+                                    for (ObjectOutputStream clientOut : clientOutputStreams) {
+                                        clientOut.writeObject(notification);
+                                        clientOut.flush();
+                                    }
+                                }
                             }
                         } catch (IOException | ClassNotFoundException | InterruptedException e) {
                             e.printStackTrace();
