@@ -5,13 +5,30 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class SocketClient {
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
-        Socket socket = new Socket("localhost", 8080);
+
+    static final String HOST = "localhost";
+    static final int SERVER_PORT = 8080;
+    public static void main(String[] args) throws IOException {
+        Socket socket = new Socket(HOST, SERVER_PORT);
         System.out.println("Connection established");
 
         Scanner scanner = new Scanner(System.in);
         ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
         ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+
+        Thread notificationThread = new Thread(() -> {
+            try {
+                while (true) {
+                    Object response = in.readObject();
+                    if (response instanceof Notification) {
+                        System.out.println("Server response: " + ((Notification) response).getMessage());
+                    }
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
+        notificationThread.start();
 
         while (true) {
             System.out.print("Enter notification message: ");
@@ -24,13 +41,6 @@ public class SocketClient {
             out.writeObject(notification);
 
             System.out.println("Notification sent successfully.");
-
-            Object response = in.readObject();
-            if (response instanceof String) {
-                System.out.println("Server response: " + response);
-            }
         }
-
-
     }
 }
