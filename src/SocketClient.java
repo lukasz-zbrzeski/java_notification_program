@@ -21,8 +21,9 @@ public class SocketClient {
                 while (true) {
                     Object response = in.readObject();
                     if (response instanceof Notification) {
-                        System.out.println("Server response: " + ((Notification) response).getMessage());
+                        System.out.println("\nServer response: " + ((Notification) response).getMessage() + ", time: " + ((Notification) response).getSendTime());
                     }
+                    System.out.print("Enter notification message: ");
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();

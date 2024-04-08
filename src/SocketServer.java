@@ -29,7 +29,7 @@ public class SocketServer {
 
                             while (true) {
                                 Notification notification = (Notification) in.readObject();
-                                System.out.println("Notification received: " + notification.getMessage());
+                                System.out.println("Notification received: " + notification.getMessage() + ", time: " + notification.getSendTime());
 
                                 Thread.sleep(notification.getSendTime());
 
