@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -9,7 +10,13 @@ public class SocketClient {
     static final String HOST = "localhost";
     static final int SERVER_PORT = 8080;
     public static void main(String[] args) throws IOException {
-        Socket socket = new Socket(HOST, SERVER_PORT);
+        Socket socket;
+        try {
+            socket = new Socket(HOST, SERVER_PORT);
+        } catch (ConnectException e) {
+            System.out.println("Server is not started.");
+            return;
+        }
         System.out.println("Connection established");
 
         Scanner scanner = new Scanner(System.in);
@@ -26,7 +33,7 @@ public class SocketClient {
                     System.out.print("Enter notification message: ");
                 }
             } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         });
         notificationThread.start();
@@ -36,7 +43,17 @@ public class SocketClient {
             String message = scanner.nextLine();
 
             System.out.print("Enter time to send notification (in milliseconds): ");
-            long time = Long.parseLong(scanner.nextLine());
+            long time;
+            try {
+                time = Long.parseLong(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("The given value is not a number!");
+                continue;
+            }
+            if (time < 0) {
+                System.out.println("The given number must not be negative!");
+                continue;
+            }
 
             Notification notification = new Notification(message, time);
             out.writeObject(notification);

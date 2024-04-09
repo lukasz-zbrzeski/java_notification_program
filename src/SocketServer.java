@@ -42,12 +42,12 @@ public class SocketServer {
                                 }
                             }
                         } catch (IOException | ClassNotFoundException | InterruptedException e) {
-                            e.printStackTrace();
+                            System.out.println("Client disconnected.");
                         }
                     }).start();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         });
         serverThread.start();
