@@ -9,6 +9,27 @@ public class SocketClient {
 
     static final String HOST = "localhost";
     static final int SERVER_PORT = 8080;
+
+    private static Notification getNotification(Scanner scanner) throws NotificationException {
+        System.out.print("Enter notification message: ");
+        String message = scanner.nextLine();
+        if (message.length() == 0 || (message.charAt(0) >= '0' && message.charAt(0) <= '9')) {
+            throw new NotificationException("Notification must not be empty and must start with a letter");
+        }
+
+        System.out.print("Enter time to send notification (in milliseconds): ");
+        long time;
+        try {
+            time = Long.parseLong(scanner.nextLine());
+        } catch (NumberFormatException e) {
+            throw new NotificationException("The given value is not a number!");
+        }
+        if (time < 0) {
+            throw new NotificationException("The given number must not be negative!");
+        }
+
+        return new Notification(message, time);
+    }
     public static void main(String[] args) throws IOException {
         Socket socket;
         try {
@@ -39,23 +60,15 @@ public class SocketClient {
         notificationThread.start();
 
         while (true) {
-            System.out.print("Enter notification message: ");
-            String message = scanner.nextLine();
-
-            System.out.print("Enter time to send notification (in milliseconds): ");
-            long time;
+            Notification notification;
             try {
-                time = Long.parseLong(scanner.nextLine());
-            } catch (NumberFormatException e) {
-                System.out.println("The given value is not a number!");
-                continue;
-            }
-            if (time < 0) {
-                System.out.println("The given number must not be negative!");
+                notification = getNotification(scanner);
+            } catch (NotificationException e) {
+                System.out.println(e.getMessage());
                 continue;
             }
 
-            Notification notification = new Notification(message, time);
+
             out.writeObject(notification);
 
             System.out.println("Notification sent successfully.");
